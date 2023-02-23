@@ -1,0 +1,56 @@
+#tbl-add-dependents tbody tr td:nth-child(1){ width: 47% !important; }
+#tbl-add-dependents tbody tr td:nth-child(2){ width: 47% !important; }
+#tbl-add-dependents tbody tr td:nth-child(3){ width: 6% !important; }
+
+#tbl-add-dependents thead tr th:nth-child(1){ text-align: center !important; }
+#tbl-add-dependents thead tr th:nth-child(2){ text-align: center !important; }
+#tbl-add-dependents thead tr th:nth-child(3){ text-align: center !important; }
+
+#tbl-deduction tbody tr td:nth-child(4){ width: 23% !important; }
+
+.select2-container .select2-selection--single {
+  height: 38px !important;
+}
+
+.lds-dual-ring.hidden { 
+  display: none;
+}
+
+.lds-dual-ring {
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+}
+
+.lds-dual-ring:after {
+  content: " ";
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 5% auto;
+  border-radius: 50%;
+  border: 6px solid #fff;
+  border-color: #fff transparent #fff transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+
+@keyframes lds-dual-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0,0,0,.8);
+    z-index: 9999;
+    opacity: 1;
+    transition: all 0.5s;
+}
