@@ -1,9 +1,22 @@
 $(document).ready(function () {
   payrollList()
+  // $.ajax({
+  //   type: "get",
+  //   url: "get-payroll-column",
+  //   data: {},
+  //   dataType: "JSON",
+  //   success: function (col) {
+  //     payrollList(col);
+  //   }
+  // });
+
+  
+
 });
 
 
 function payrollList(){
+
   tblPayroll = $('#tbl-payroll').DataTable({
     responsive: true,
     searchHighlight: true,
@@ -31,9 +44,11 @@ function payrollList(){
       "type": 'POST',
       "data": {
         "_token": $('#tbl-payroll').attr('data-csrf'),
+        "payroll_type" : $('#tbl-payroll').attr('data-type')
       }
     },
-    "responsive": true, "lengthChange": true, "autoWidth": false, "pageLength": 10,
+    // "columns": columnObj,
+    "responsive": true, "lengthChange": true, "autoWidth": true, "pageLength": 10,
     scrollX: true,
     dom: 'Bfrnltip',
     buttons: [
@@ -49,4 +64,5 @@ function payrollList(){
       }
     ],
   });
+  tblPayroll.draw();
 }

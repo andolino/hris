@@ -1,5 +1,6 @@
 var tblEmployeeList = [];
 var tblShiftingList = [];
+var tblDepartment = [];
 var tblDepartmentSched = [];
 var tblDtrList = [];
 var tblMissedInOutList = [];
@@ -70,9 +71,14 @@ $(document).ready(function () {
           placeholder: "Select an Day Type",
           width: '100%'
         });
+        $('#post_payroll_date').select2({
+          placeholder: "Select a Date",
+          width: '100%'
+        });
         $('.add_dep_sched_select').select2({
           placeholder: "Select Department",
-          width: '100%'
+          width: '100%',
+          allowClear: true
         });
         $('.timepicker').datetimepicker({
           format: 'LT'
@@ -140,6 +146,26 @@ $(document).ready(function () {
     });
   });
 
+  function refreshDataTable(){
+    if ($.fn.DataTable.isDataTable('#tbl-employees-list')) {
+      tblEmployeeList.ajax.reload();
+    } else if($.fn.DataTable.isDataTable('#tbl-shifting-list')){
+      tblShiftingList.ajax.reload();
+    } else if($.fn.DataTable.isDataTable('#tbl-department-schedule')){
+      tblDepartmentSched.ajax.reload(); 
+    } else if($.fn.DataTable.isDataTable('#tbl-ot-leave-request')){
+      tblOtLeaveRequest.ajax.reload(); 
+    } else if($.fn.DataTable.isDataTable('#tbl-employee-holiday')){
+      tblEmployeeHoliday.ajax.reload(); 
+    } else if($.fn.DataTable.isDataTable('#tbl-dtr-list')){
+      tblDtrList.ajax.reload(); 
+    } else if($.fn.DataTable.isDataTable('#tbl-dtr-adjustment-request')){
+      tblDtrAdjustmentRequest.ajax.reload(); 
+    } else if($.fn.DataTable.isDataTable('#tbl-department')){
+      tblDepartment.ajax.reload(); 
+    }
+  }
+
   /**
    * Submit Data
    */
@@ -163,21 +189,7 @@ $(document).ready(function () {
       success: function (res) {
         tipToast(res.title, res.msg, res.icon, res.cls);
         $('.modal').modal('hide');
-        if ($.fn.DataTable.isDataTable('#tbl-employees-list')) {
-          tblEmployeeList.ajax.reload();
-        } else if($.fn.DataTable.isDataTable('#tbl-shifting-list')){
-          tblShiftingList.ajax.reload();
-        } else if($.fn.DataTable.isDataTable('#tbl-department-schedule')){
-          tblDepartmentSched.ajax.reload(); 
-        } else if($.fn.DataTable.isDataTable('#tbl-ot-leave-request')){
-          tblOtLeaveRequest.ajax.reload(); 
-        } else if($.fn.DataTable.isDataTable('#tbl-employee-holiday')){
-          tblEmployeeHoliday.ajax.reload(); 
-        } else if($.fn.DataTable.isDataTable('#tbl-dtr-list')){
-          tblDtrList.ajax.reload(); 
-        } else if($.fn.DataTable.isDataTable('#tbl-dtr-adjustment-request')){
-          tblDtrAdjustmentRequest.ajax.reload(); 
-        }
+        refreshDataTable();
       },
       error: function (reject) {
         if( reject.status === 422 ) {
@@ -222,6 +234,81 @@ $(document).ready(function () {
       }
     })
   });
+
+  $(document).on('click', '#tickStatus', function () {
+    var confirmMsg = $(this).attr('data-msg');
+    var tbl = $(this).attr('data-tbl');
+    var field = $(this).attr('data-fld');
+    var pkid = $(this).attr('data-pkid');
+    var val = $(this).attr('data-val');
+
+    Swal.fire({
+      title: confirmMsg,
+      showDenyButton: true,
+      confirmButtonText: 'Yes',
+      denyButtonText: `Wait`,
+      icon: 'question'
+    }).then((result) => {
+      /* Read more about isConfirmed, isDenied below */
+      if (result.isConfirmed) {
+
+        $.ajax({
+          type: "POST",
+          url: "tick-status-ot-leave-request",
+          data: { 
+            'msg': confirmMsg,
+            'tbl': tbl,
+            'field': field,
+            'val': val,
+            'pkid' : pkid,
+            _token: $('meta[name="csrf-token"]').attr('content')
+          },
+          dataType: "json",
+          success: function (res) {
+            refreshDataTable();
+            tipToast(res.title, res.msg, res.icon, res.cls);
+          }
+        });
+        // console.log(options, ' options');
+      } else if (result.isDenied) {
+        // $('#mod_emp_form').modal('hide');
+      }
+    })
+  });
+  
+  $(document).on('change', '#getSatWeek', function () {
+    var monthData = $('#monthData').val();
+    var yr = $(this).val();
+    $.ajax({
+      type: "get",
+      url: "get-week-of-month",
+      data: { 
+        'month': monthData,
+        'year': yr
+      },
+      success: function (res) {
+        $('#form-cont-week').html(res);
+      }
+    });
+  });
+  
+  $(document).on('change', '#payroll_date_payslip', function () {
+    var payroll_date = $(this).val();
+    var employee_id = $('#employeeId').val();
+    $.ajax({
+      type: "POST",
+      url: "get-individual-payslip",
+      data: { 
+        'payroll_date': payroll_date,
+        'employee_id': employee_id,
+        _token: $('meta[name="csrf-token"]').attr('content')
+      },
+      success: function (res) {
+        $('#detail_view_payslip').html(res);
+      }
+    });
+  });
+
 
 });
 

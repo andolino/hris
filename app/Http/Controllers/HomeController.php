@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use App\Models\ComputeDeduction;
+use DateTime;
 
 class HomeController extends Controller
 {
@@ -72,6 +73,7 @@ class HomeController extends Controller
                     'employees' => $employees,
                     'payrollSchedule' => $payrollSchedule
                 ]);
+                break;
             case 'salary-employee-form':
                 $employeeSalary = DB::table('employee_salary')->where('employees_id', $val)->first();
                 return view('dashboard.modal.forms.employee_salary_form', [
@@ -79,11 +81,13 @@ class HomeController extends Controller
                     'payrollSchedule' => $payrollSchedule,
                     'employeeSalary' => $employeeSalary
                 ]);
+                break;
             case 'department-form':
                 $department = DB::table('department')->where('id', $val)->first();
                 return view('dashboard.modal.forms.add_department', [
                     'department' => $department
                 ]);
+                break;
             case 'department-sched-form':
                 $shifting = DB::table('shifting')->select('*')->get();
                 $department = DB::table('department')->get();
@@ -95,23 +99,73 @@ class HomeController extends Controller
                     'dayType' => $dayType,
                     'department_schedule' => $department_schedule
                 ]);
+                break;
             case 'shifting-form':
                 $shifting = DB::table('shifting')->where('id', $val)->first();
                 return view('dashboard.modal.forms.add_shifting', [
                     'shifting' => $shifting
                 ]);
+                break;
             case 'import-dtr-monthly-form':
                 $shifting = DB::table('shifting')->where('id', $val)->first();
+                // function getSaturdaysOfMonth($month, $year) {
+                //     $saturdays = [];
+                //     $date = new DateTime("$year-$month-01");
+                //     $date->modify('first saturday of this month');
+                //     for ($i = 1; $i <= 4; $i++) {
+                //         $saturdays[] = clone $date;
+                //         $date->modify('+1 week');
+                //     }
+                //     return $saturdays;
+                // }
+                
+                // $saturdays = getSaturdaysOfMonth(2, 2023);
+                // foreach ($saturdays as $saturday) {
+                //     echo $saturday->format('Y-m-d') . "\n";
+                // }
+
                 return view('dashboard.modal.forms.upload_dtr_frm', [
                     'shifting' => $shifting,
                     'payroll_type' => $request->type
                 ]);
+                break;
             case 'import-dtr-weekly-form':
                 $shifting = DB::table('shifting')->where('id', $val)->first();
-                return view('dashboard.modal.forms.upload_dtr_frm', [
+                // function getSaturdaysOfMonth($month, $year) {
+                //     $saturdays = [];
+                //     $date = new DateTime("$year-$month-01");
+                //     $date->modify('first saturday of this month');
+                //     for ($i = 1; $i <= 4; $i++) {
+                //         $saturdays[] = clone $date;
+                //         $date->modify('+1 week');
+                //     }
+                //     return $saturdays;
+                // }
+                
+                // $saturdays = getSaturdaysOfMonth(2, 2023);
+                // foreach ($saturdays as $saturday) {
+                //     echo $saturday->format('Y-m-d') . "\n";
+                // }
+
+                return view('dashboard.modal.forms.upload_dtr_weekly_frm', [
                     'shifting' => $shifting,
                     'payroll_type' => $request->type
                 ]);
+                break;
+            case 'import-piece-rate-form':
+                $shifting = DB::table('shifting')->where('id', $val)->first();
+                return view('dashboard.modal.forms.upload_weekly_rate_frm', [
+                    'shifting' => $shifting,
+                    'payroll_type' => $request->type
+                ]);
+                break;
+            case 'import-oth-ded-form':
+                $shifting = DB::table('shifting')->where('id', $val)->first();
+                return view('dashboard.modal.forms.upload-other-deduction', [
+                    'shifting' => $shifting,
+                    'payroll_type' => $request->type
+                ]);
+                break;
             case 'leave-request-form':
                 $dayType = DB::table('day_type')->get();
                 $empLeaveRequest = DB::table('employee_leave_request')->where('id', $val)->first();
@@ -120,6 +174,7 @@ class HomeController extends Controller
                     'employees' => $employees,
                     'empLeaveRequest' => $empLeaveRequest
                 ]);
+                break;
             case 'employee-holiday-form':
                 $employee_holiday = DB::table('employee_holiday')->where('id', $val)->first();
                 $dayType = DB::table('day_type')->get();
@@ -127,11 +182,13 @@ class HomeController extends Controller
                     'employee_holiday' => $employee_holiday,
                     'day_type' => $dayType
                 ]);
+                break;
             case 'dtr-list-form':
                 $dtr = DB::table('dtr')->where('id', $val)->first();
                 return view('dashboard.modal.forms.update_dtr_time', [
                     'dtr' => $dtr
                 ]);
+                break;
             case 'dtr-adj-request-form':
                 $dtrAdjRequest = DB::table('dtr_adj_request')->where('id', $val)->first();
                 return view('dashboard.modal.forms.add_dtr_adj_req', [
@@ -139,6 +196,7 @@ class HomeController extends Controller
                     'branches' => $branches,
                     'dtrAdjRequest' => $dtrAdjRequest
                 ]);
+                break;
             case 'loans-form':
                 $loans = DB::table('loans')->where('id', $val)->first();
                 $loan_types = DB::table('loan_types')->get();
@@ -150,15 +208,45 @@ class HomeController extends Controller
                     'loan_ded_type' => $loan_ded_type
                     // 'dtrAdjRequest' => $dtrAdjRequest
                 ]);
+                break;
+            case 'post-payroll-monthly-form':
+                $dtr = DB::table('dtr')
+                            ->leftJoin('employees', 'employees.id', '=', 'dtr.employee_id')
+                            ->where('employees.payroll_schedule_id', 1)
+                            ->whereNotIn('dtr.payroll_date', function($q){
+                                $q->select('payroll_date')
+                                ->from('payroll');
+                            })
+                            ->get();
+                $payroll_dates = [];
+                foreach ($dtr as $row) {
+                    array_push($payroll_dates, $row->payroll_date);
+                }
+                $payroll_dates = array_unique($payroll_dates);
+                $payroll_dates = array_values($payroll_dates);
+                sort($payroll_dates);
+                return view('dashboard.modal.forms.post_monthly_payroll', [
+                    'payroll_dates' => $payroll_dates
+                ]);
+                break;
             case 'employee-payroll-details':
                 $employee_id = $val;
-                $details = DB::table('v_monthly_payroll')
-                                ->where('employee_id', $employee_id)
-                                ->orderByRaw("1, 3, 2, 7, 8, 9")->get();
-                $deductions = ComputeDeduction::showComputation($details[1]->debit);
+                // x.employee_id = 290 and x.payroll_schedule_id = 2 and x.payroll_date = '2023-02-18'
+                /**
+                 * Check if employee is monthly or weekly
+                 */
+                $employee = DB::table('employees')->where('id', $employee_id)->first();
+                $dtr = DB::table('dtr')->where('employee_id', $employee_id)->get();
+                $payroll_dates = [];
+                foreach ($dtr as $row) {
+                    array_push($payroll_dates, $row->payroll_date);
+                }
+                $payroll_dates = array_unique($payroll_dates);
+                $payroll_dates = array_values($payroll_dates);
+                sort($payroll_dates);
                 return view('dashboard.modal.details.employee_payslip', [
-                    'details' => $details,
-                    'deductions' => $deductions
+                    'employee' => $employee,
+                    'payroll_dates' => $payroll_dates
                     // 'dtrAdjRequest' => $dtrAdjRequest
                 ]);
             default:
@@ -166,6 +254,87 @@ class HomeController extends Controller
                 break;
         }
 
+    }
+
+    public function getPayrollColumn(){
+        $col = DB::select("call pr_payroll_summary('2023-01-16', 1)");
+        $array = get_object_vars($col[0]);
+        $column = array_keys($array);
+        $data = [];
+        for ($i=0; $i < count($column); $i++) { 
+            array_push($data, (object) array(
+                "data" => $column[$i],
+                "width" => "10%"
+            ));
+        }
+        return response()->json($data);
+    }
+
+    function getSaturdaysOfMonth($month, $year) {
+        $saturdays = [];
+        $date = new DateTime("$year-$month-01");
+        $date->modify('first saturday of this month');
+        for ($i = 1; $i <= 4; $i++) {
+            $saturdays[] = clone $date;
+            $date->modify('+1 week');
+        }
+        return $saturdays;
+    }
+
+    public function getIndividualPayslip(Request $request){
+        $employee_id = $request->employee_id;
+        $payroll_date = $request->payroll_date;
+        $employee = DB::table('employees')->where('id', $employee_id)->first();
+        $details = DB::table('v_payroll_detail')
+                        ->where('employee_id', $employee_id)
+                        ->where('payroll_schedule_id', $employee->payroll_schedule_id)
+                        ->where('payroll_date', $payroll_date)
+                        // ->orderByRaw("1, 3, 2, 7, 8, 9")
+                        ->get();
+        
+        /**get current Date */
+        $payroll_dates = [];
+        $saturdays = $this->getSaturdaysOfMonth(date('m', strtotime($payroll_date)), date('Y', strtotime($payroll_date)));
+        foreach ($saturdays as $saturday) {
+            array_push($payroll_dates, $saturday->format('Y-m-d'));
+        }
+
+        $summarize = DB::table('v_payroll_detail')
+                    ->where('employee_id', $employee_id)
+                    ->where('payroll_schedule_id', $employee->payroll_schedule_id)
+                    ->whereIn('payroll_date', $payroll_dates)
+                    // ->orderByRaw("1, 3, 2, 7, 8, 9")
+                    ->get();
+
+        $dedtn = 0;
+        $ddd = [];
+        foreach ($summarize as $row) {
+            if ($row->debit != '') {
+                $dedtn += $row->debit;
+                // echo $row->debit . "\r";
+                array_push($ddd, $row->debit);
+            }
+        }
+
+        if ($details) {
+            // monthly
+            if ($details[1]->week_count == 0) {
+                $deductions = ComputeDeduction::showComputation(floatval(str_replace(',', '', $details[1]->debit)) * 2);
+            } 
+            // weekly
+            else {
+                $deductions = ComputeDeduction::showComputation($dedtn);
+            }
+        }
+        return view('dashboard.modal.details.individual_payslip', [
+            'details' => $details,
+            'deductions' => $deductions
+        ]);
+    }
+
+    public function computePayroll(){
+        $d = ComputeDeduction::showComputation("50000");
+        return response()->json($d);
     }
 
     public function saveDepartment(Request $request){
@@ -459,6 +628,7 @@ class HomeController extends Controller
     
     public function saveLoans(Request $request){
         $data = $request->all();
+
         $user = \Auth::user();
         $validatedData = $request->validate([
             'employee_id' => 'required',
@@ -467,7 +637,9 @@ class HomeController extends Controller
             'loan_amount' => 'required',
             'amortization' => 'required',
             'date_started' => 'required',
-            'date_end' => 'required'
+            // 'date_end' => 'required',
+            'months' => 'required',
+            'terms' => 'required'
         ], [
             'employee_id.required'=> 'Day Type is Required',
             'loan_type_id.required'=> 'Loan Type is Required',
@@ -475,7 +647,9 @@ class HomeController extends Controller
             'loan_amount.required'=> 'Loan Amount is Required',
             'amortization.required'=> 'Amortization is Required',
             'date_started.required'=> 'Date Started is Required',
-            'date_end.required'=> 'Date End is Required'
+            // 'date_end.required'=> 'Date End is Required',
+            'months.required'=> 'Months is Required',
+            'terms.required'=> 'Terms is Required'
         ]);
         $data = [
             'employee_id' => $data['employee_id'],
@@ -483,17 +657,34 @@ class HomeController extends Controller
             'loan_ded_type_id' => $data['loan_ded_type_id'],
             'loan_amount' => $data['loan_amount'],
             'amortization' => $data['amortization'],
-            'date_started' => $data['date_started'],
-            'date_end' => $data['date_end'],
+            'date_started' => date('Y-m-d', strtotime($data['date_started'])),
+            'months' => $data['months'],
+            'terms' => $data['terms'],
+            // 'date_end' => $data['date_end'],
             'created_at' => Carbon::now()
         ];
         try {
-            DB::table('loans')->updateOrInsert([
+            $result = DB::table('loans')->updateOrInsert([
                 'id' => $request->loan_id
             ], $data);
+            if ($result) {
+                $id = DB::getPdo()->lastInsertId();
+                $terms = $data['terms'];
+                $amortization = $data['amortization'];
+                $details = [];
+                for ($i=0; $i < $terms; $i++) { 
+                    array_push($details, array(
+                        'loan_id' => $id,
+                        'balance' => $data['amortization'],
+                        'created_at' => Carbon::now()
+                    ));
+                }
+                DB::table('loan_details')->insert($details);
+            }
+
             return response()->json([
                 'title' => 'Success', 
-                'msg' => 'Salary Successfully Saved!', 
+                'msg' => 'Loans Successfully Saved! ', 
                 'icon' => 'fas fa-check', 
                 'cls' => 'bg-success mr-1'
             ]);
@@ -506,7 +697,66 @@ class HomeController extends Controller
             ]);
         }
     }
+    
+    public function tickStatusOtLeaveRequest(Request $request){
+        $data = $request->all();
+        $user = \Auth::user();
+        try {
+            DB::table($data['tbl'])->where('id', $data['pkid'])->update([
+                $data['field'] => $data['val']
+            ]);
+            return response()->json([
+                'title' => 'Success', 
+                'msg' => 'Saved!', 
+                'icon' => 'fas fa-check', 
+                'cls' => 'bg-success mr-1'
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'title' => 'Error', 
+                'msg' => 'Error on Backend! ' . $th, 
+                'icon' => 'fas fa-check', 
+                'cls' => 'bg-danger mr-1'
+            ]);
+        }
+    }
+    
+    public function savePostMonthly(Request $request){
+        $payroll_date = $request->payroll_date;
+        $monthly_employee = DB::table('employees')
+                                ->where('payroll_schedule_id', 1)
+                                ->where('employee_status_id', 1)
+                                ->get();
 
 
+        foreach ($monthly_employee as $row) {
+            $details = DB::table('v_payroll_detail')
+                            ->where('employee_id', $row->id)
+                            ->where('payroll_schedule_id', 1)
+                            ->where('payroll_date', $payroll_date)
+                            ->get();
+            foreach ($details as $key => $value) {
+                # code...
+            }
+        }
+    }
+    
+    public function getEmployeeData(Request $request){
+        $monthly_employee = DB::table('employees')
+                                ->where('id', $request->employee_id)
+                                ->first();
+        $ded_type = $monthly_employee->payroll_schedule_id;
+        if ($ded_type == 2) {
+            $dedOptions = DB::table('loan_ded_type')->get();
+        } else {
+            $dedOptions = DB::table('loan_ded_type')
+                                ->whereIn('id', [1, 2, 3])
+                                ->get();
+        }
+        return response()->json([
+            'data' => $monthly_employee,
+            'dedOptions' => $dedOptions
+        ]);
+    }
 
 }

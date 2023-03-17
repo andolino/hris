@@ -74,6 +74,11 @@
                                 </th>
                                 <th class="">
                                     <small class="font-weight-bold">
+                                        STATUS
+                                    </small>
+                                </th>
+                                <th class="">
+                                    <small class="font-weight-bold">
                                         ACTION
                                     </small>
                                 </th>

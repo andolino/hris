@@ -44,6 +44,9 @@ class Table extends Model
             $q->where('time_in', '<>', '00:00:00');
           }
           break;
+        case 'server-payroll':
+          $q->where("payroll_schedule_id", $request['payroll_type']);
+          break;
         default:
           break;
       }
@@ -51,57 +54,57 @@ class Table extends Model
 
     public static function _que_tbl(){
         
-        $initPost   = Request::all(); 
-        $query      = DB::table(self::$tbl)->select('*');
-        $query->where("is_deleted", 0);
-        $i          = 0;
-        // add for where
-        self::whereFn($query);
-        foreach (self::$tblColumns as $item) {
-          if (!empty($initPost['search']['value'])) {
-            if ($i === 0) {
-              $query->where($item, 'like', '%' . strtolower($initPost['search']['value']) . '%');
-            } else {
-              $query->orWhere($item, 'like', '%' . strtolower($initPost['search']['value']) . '%');
-            }
-            // add for where
-            self::whereFn($query);
+      $initPost   = Request::all(); 
+      $query      = DB::table(self::$tbl)->select('*');
+      $query->where("is_deleted", 0);
+      $i          = 0;
+      // add for where
+      self::whereFn($query);
+      foreach (self::$tblColumns as $item) {
+        if (!empty($initPost['search']['value'])) {
+          if ($i === 0) {
+            $query->where($item, 'like', '%' . strtolower($initPost['search']['value']) . '%');
+          } else {
+            $query->orWhere($item, 'like', '%' . strtolower($initPost['search']['value']) . '%');
           }
-          $column[$i] = $item;
-          $i++;
+          // add for where
+          self::whereFn($query);
         }
-        if (isset($initPost['order'])) {
-          $query->where("is_deleted", 0);
-          $query->orderBy($column[$initPost['order']['0']['column']], $initPost['order']['0']['dir']);
-        }elseif(self::$tblOrder){
-          $query->where('is_deleted', '0');
-          $order = self::$tblOrder;
-          $query->orderBy(key($order), $order[key($order)]);
-        }
+        $column[$i] = $item;
+        $i++;
+      }
+      if (isset($initPost['order'])) {
+        $query->where("is_deleted", 0);
+        $query->orderBy($column[$initPost['order']['0']['column']], $initPost['order']['0']['dir']);
+      }elseif(self::$tblOrder){
+        $query->where('is_deleted', '0');
+        $order = self::$tblOrder;
         $query->orderBy(key($order), $order[key($order)]);
-    
-        return $query;
       }
+      $query->orderBy(key($order), $order[key($order)]);
+  
+      return $query;
+    }
     
-      public static function getOutputTbl($tbl, $tblColumns=array(), $tblOrder=array()){
-        self::$tbl = $tbl;
-        self::$tblColumns = $tblColumns;
-        self::$tblOrder = $tblOrder;
-        $initPost = Request::all();
-        $q = self::_que_tbl();
-        if (!empty($initPost['length']))
-        $q->limit(($initPost['length'] < 0 ? 0 : $initPost['length']))->offset($initPost['start']);
-        $result = $q->get();
-        return $result;
-      }
-    
-      public static function countAllTbl(){
-        $count = DB::table(self::$tbl)->where('is_deleted', 0)->get();
-        return count($count);
-      }
-    
-      public static function countFilterTbl(){
-        $q = self::_que_tbl()->get();
-        return count($q);
-      }
+    public static function getOutputTbl($tbl, $tblColumns=array(), $tblOrder=array()){
+      self::$tbl = $tbl;
+      self::$tblColumns = $tblColumns;
+      self::$tblOrder = $tblOrder;
+      $initPost = Request::all();
+      $q = self::_que_tbl();
+      if (!empty($initPost['length']))
+      $q->limit(($initPost['length'] < 0 ? 0 : $initPost['length']))->offset($initPost['start']);
+      $result = $q->get();
+      return $result;
+    }
+  
+    public static function countAllTbl(){
+      $count = DB::table(self::$tbl)->where('is_deleted', 0)->get();
+      return count($count);
+    }
+  
+    public static function countFilterTbl(){
+      $q = self::_que_tbl()->get();
+      return count($q);
+    }
 }

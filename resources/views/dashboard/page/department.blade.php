@@ -34,7 +34,7 @@
             <div class="card-body">
                 <div class="row">
                   <div class="col-5">
-                    <table id="mytable" class="display nowrap table table-striped table-bordered table-sm" width="100%">
+                    <table id="tbl-department" class="display nowrap table table-striped table-bordered table-sm" data-csrf="{{ csrf_token() }}" width="100%">
                         <thead>
                             <tr>
                                 <th class="text-center">
@@ -55,7 +55,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                          @forelse ($department as $item)
+                          {{-- @forelse ($department as $item)
                                 <tr>
                                     <td class="text-center">{{ $item->id }}</td>
                                     <td class="">{{ $item->title }}</td>
@@ -66,7 +66,7 @@
                                 </tr>
                           @empty
 
-                          @endforelse
+                          @endforelse --}}
                         </tbody>
                     </table>
                   </div>

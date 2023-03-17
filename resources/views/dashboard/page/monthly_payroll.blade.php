@@ -25,17 +25,25 @@
                 <div class="btn-group" role="group" aria-label="Basic example">
                     {{-- data-toggle="modal" data-target="#emp_form" --}}
                     <button type="button" class="btn btn-secondary" title="Add Loans" data-form="mod_loans_form" data-type="loans-form" id="show_form"><i class="fa-solid fa-plus"></i></button>
-                    {{-- <button type="button" class="btn btn-secondary" title="Salary" data-form="mod_salary_form" data-type="salary-form" id="show_form"><i class="fa-solid fa-coins"></i></button>
-                    <button type="button" class="btn btn-secondary" title="Leave"><i class="fa-solid fa-business-time"></i></i></button>
+                    
+                    <button type="button" class="btn btn-secondary" title="Post Payroll" data-form="mod_post_payroll_form" data-type="post-payroll-monthly-form" id="show_form"><i class="fa-solid fa-calendar-day"></i></button>
+                    {{-- <button type="button" class="btn btn-secondary" title="Leave"><i class="fa-solid fa-business-time"></i></i></button>
                     <button type="button" class="btn btn-secondary" title="Loan"><i class="fa-solid fa-comment-dollar"></i></button> --}}
                 </div>
             </div>
             <div class="card-body">
                 <div class="row">
                   <div class="col-12">
-                    <table id="tbl-payroll" class="display nowrap table table-striped table-bordered table-sm" data-csrf="{{ csrf_token() }}" width="100%">
+                    <table id="tbl-payroll" class="display nowrap table table-striped table-bordered table-sm w-100" data-type="1" data-csrf="{{ csrf_token() }}" width="100%">
                         <thead>
                             <tr>
+                                {{-- @for ($i = 0; $i < count($column); $i++)
+                                <th class="">
+                                    <small class="font-weight-bold">
+                                        {{ $column[$i] }}
+                                    </small>
+                                </th>
+                                @endfor --}}
                                 <th class="">
                                     <small class="font-weight-bold">
                                         NAME
@@ -128,13 +136,12 @@
         </div>
     </div>
 </div>
-@include('dashboard.modal.payroll_mod')
+@include('dashboard.modal.payroll_payslip')
+@include('dashboard.modal.post_payroll')
 @endsection
 
 @push('script')
 
 <script src="{{ asset('js/payroll.js') }}"></script>
-<script>
-    
-</script>
+
 @endpush

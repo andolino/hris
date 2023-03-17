@@ -204,7 +204,9 @@ class EmployeeController extends Controller
             $data = array();
             $no++;
             $data[] = $row->idcode;
-            $data[] = $row->lastname.', '.$row->firstname.' '.$row->middlename;
+            $data[] = $row->lastname;
+            $data[] = $row->firstname;
+            $data[] = $row->middlename;
             $data[] = $row->gender;
             $data[] = $row->civil_status;
             $data[] = $row->department;

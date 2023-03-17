@@ -41,7 +41,17 @@
                             </th>
                             <th class="text-center">
                                 <small class="font-weight-bold">
-                                    EMP. NAME
+                                    LASTNAME
+                                </small>
+                            </th>
+                            <th class="text-center">
+                                <small class="font-weight-bold">
+                                    FIRSTNAME
+                                </small>
+                            </th>
+                            <th class="text-center">
+                                <small class="font-weight-bold">
+                                    MIDDLENAME
                                 </small>
                             </th>
                             <th class="text-center">

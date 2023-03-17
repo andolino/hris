@@ -64,8 +64,8 @@ function computeBasicRate(e){
   var br = number_format(val);
   var basic_rate = Number(br)
   // daily rate
-  $('input[name="daily_rate"]').val(number_format((basic_rate * 12) / 313));
+  $('input[name="daily_rate"]').val(number_format((val / 30)));
   // hourly rate
-  $('input[name="hourly_rate"]').val(number_format((basic_rate * 12) / 313 / 8));
+  $('input[name="hourly_rate"]').val(number_format((val / 30) / 8));
 }
 

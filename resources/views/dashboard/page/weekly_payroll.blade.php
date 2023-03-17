@@ -18,7 +18,6 @@
 <link rel="stylesheet" href="{{ asset('css/custom.css?random=') . mt_rand() }}">
 @endpush
 @section('content')
-
 <div class="row">
     <div class="col">
         <div class="card">
@@ -33,8 +32,8 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                  <div class="col-10">
-                    <table id="tbl-loans" class="display nowrap table table-striped table-bordered table-sm" data-csrf="{{ csrf_token() }}" width="100%">
+                  <div class="col-12">
+                    <table id="tbl-payroll" class="display nowrap table table-striped table-bordered table-sm" data-type="2" data-csrf="{{ csrf_token() }}" width="100%">
                         <thead>
                             <tr>
                                 <th class="">
@@ -44,34 +43,64 @@
                                 </th>
                                 <th class="">
                                     <small class="font-weight-bold">
-                                        LOAN TYPE
+                                        BASIC RATE
                                     </small>
                                 </th>
                                 <th class="">
                                     <small class="font-weight-bold">
-                                        DEDUCTION TYPE
+                                        DAYS WORKED
                                     </small>
                                 </th>
                                 <th class="">
                                     <small class="font-weight-bold">
-                                        AMOUNT
+                                        OVERTIME
                                     </small>
                                 </th>
                                 <th class="">
                                     <small class="font-weight-bold">
-                                        AMORTIZATION
+                                        SICK LEAVE
                                     </small>
                                 </th>
                                 <th class="">
                                     <small class="font-weight-bold">
-                                        DATE STARTED
+                                        VACATION LEAVE
                                     </small>
                                 </th>
-                                {{-- <th class="">
+                                <th class="">
                                     <small class="font-weight-bold">
-                                        DATE END
+                                        ALLOWANCE
                                     </small>
-                                </th> --}}
+                                </th>
+                                <th class="">
+                                    <small class="font-weight-bold">
+                                        REGULAR HOLIDAY
+                                    </small>
+                                </th>
+                                <th class="">
+                                    <small class="font-weight-bold">
+                                        SPECIAL HOLIDAY
+                                    </small>
+                                </th>
+                                <th class="">
+                                    <small class="font-weight-bold">
+                                        SUBSIDY
+                                    </small>
+                                </th>
+                                <th class="">
+                                    <small class="font-weight-bold">
+                                        LATE
+                                    </small>
+                                </th>
+                                <th class="">
+                                    <small class="font-weight-bold">
+                                        UNDERTIME
+                                    </small>
+                                </th>
+                                <th class="">
+                                    <small class="font-weight-bold">
+                                        TOTAL DEDUCTION
+                                    </small>
+                                </th>
                                 <th class="">
                                     <small class="font-weight-bold">
                                         ACTION
@@ -99,12 +128,13 @@
         </div>
     </div>
 </div>
-@include('dashboard.modal.loans_mod')
+@include('dashboard.modal.payroll_payslip')
+@include('dashboard.modal.post_payroll')
 @endsection
 
 @push('script')
 
-<script src="{{ asset('js/loans.js') }}"></script>
+<script src="{{ asset('js/payroll.js') }}"></script>
 <script>
     
 </script>

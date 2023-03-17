@@ -42,6 +42,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dtr-adj-request', [AdminController::class, 'dtrAdjRequest'])->name('dtr_adj_request');
     Route::get('/loans', [AdminController::class, 'loanPage'])->name('loans');
     Route::get('/payroll-monthly', [AdminController::class, 'monthlyPayroll'])->name('payroll_monthly');
+    Route::get('/payroll-weekly', [AdminController::class, 'weeklyPayroll'])->name('payroll_weekly');
     // ----------------LOGOUT---------------
     Route::get('/logout', [AdminController::class, 'logout'])->name('admin.logout');
 
@@ -62,15 +63,26 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/save-dtr-time-in-out', [HomeController::class, 'saveDtrTimeInOut']);
     Route::post('/save-dtr-adj-request', [HomeController::class, 'saveDtrAdjRequest']);
     Route::post('/save-loans', [HomeController::class, 'saveLoans']);
+    Route::post('/save-import-dtr', [AdminController::class, 'saveUploadDTR']);
+    Route::post('/save-import-weekly-rate', [AdminController::class, 'saveImportWeeklyRate']);
+    Route::post('/save-import-other-deduction', [AdminController::class, 'saveImportOtherDeduction']);
+    Route::get('/get-week-of-month', [AdminController::class, 'getWeekOfMonth']);
+    Route::post('/get-individual-payslip', [HomeController::class, 'getIndividualPayslip']);
+    Route::post('/tick-status-ot-leave-request', [HomeController::class, 'tickStatusOtLeaveRequest']);
+    Route::get('/compute', [HomeController::class, 'computePayroll']);
+    Route::post('/save-post-monthly', [HomeController::class, 'savePostMonthly']);
+    Route::get('/get-payroll-column', [HomeController::class, 'getPayrollColumn']);
+    Route::get('/get-employee-data', [HomeController::class, 'getEmployeeData']);
+    Route::get('/set-loans-payment-sched', [HomeController::class, 'setLoansPaymentSched']);
 
     /**
      * Datatable
      */
     Route::post('/server-employees-list', [EmployeeController::class, 'getSsideEmployee']);
     Route::post('/server-shifting-list', [AdminController::class, 'serverShiftingList']);
+    Route::post('/server-department', [AdminController::class, 'serverDepartment']);
     Route::post('/server-department-schedule', [AdminController::class, 'serverDepartmentSchedule']);
     Route::post('/save-add-department-sched', [HomeController::class, 'saveAddDepartmentSched']);
-    Route::post('/save-import-dtr', [AdminController::class, 'saveUploadDTR']);
     Route::post('/server-dtr-list', [AdminController::class, 'serverDtrList']);
     Route::post('/server-missed-in-out', [AdminController::class, 'serverMissedInOut']);
     Route::post('/server-ot-leave-request', [AdminController::class, 'serverOtLeaveRequest']);

@@ -9,8 +9,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Table;
 use App\Imports\DtrImport;
+use App\Imports\PieceRateImport;
+use App\Imports\OtherDeductionImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
+use DateTime;
+use Yajra\DataTables\DataTables;
 
 class AdminController extends Controller
 {
@@ -28,7 +32,7 @@ class AdminController extends Controller
     public function index()
     {
         $title = 'Dashboard';
-        return view('dashboard.index', compact('title'));
+        return view('dashboard.page.index', compact('title'));
     }
 
     public function employee_monthly()
@@ -106,7 +110,35 @@ class AdminController extends Controller
     
     public function monthlyPayroll(){
         $title = 'Monthly Payroll';
-        return view('dashboard.page.monthly_payroll', compact('title'));
+        $col = DB::select("call pr_payroll_summary('2023-01-16', 1)");
+        $array = get_object_vars($col[0]);
+        $column = array_keys($array);
+        return view('dashboard.page.monthly_payroll', compact('title', 'column'));
+    }
+    
+    public function weeklyPayroll(){
+        $title = 'Weekly Payroll';
+        return view('dashboard.page.weekly_payroll', compact('title'));
+    }
+
+    public function getWeekOfMonth(Request $request){
+        $saturdays = $this->getSaturdaysOfMonth($request->month, $request->year);
+        // $saturdays = getSaturdaysOfMonth(2, 2023);
+        // foreach ($saturdays as $saturday) {
+        //     echo $saturday->format('Y-m-d');
+        // }
+        return view('dashboard.modal.forms.week_of_month', compact('saturdays'));
+    }
+
+    function getSaturdaysOfMonth($month, $year) {
+        $saturdays = [];
+        $date = new DateTime("$year-$month-01");
+        $date->modify('first saturday of this month');
+        for ($i = 1; $i <= 4; $i++) {
+            $saturdays[] = clone $date;
+            $date->modify('+1 week');
+        }
+        return $saturdays;
     }
 
     public function serverShiftingList(Request $request){
@@ -151,6 +183,38 @@ class AdminController extends Controller
         echo json_encode($output);
     }
 
+    public function serverDepartment(Request $request){
+        $initPost = $request->all();
+        $result   = Table::getOutputTbl('department', ['id',
+                                                        'title',
+                                                        'created_at'
+                                                    ], ['id' => 'asc']);
+        $res      = array();
+        $no       = isset($initPost['start']) ? $initPost['start'] : 0;
+
+        foreach ($result as $row) {
+            $data = array();
+            $no++;
+            $data[] = $row->id;
+            $data[] = $row->title;
+            $data[] = '<a href="javascript:void(0);" 
+                        class="text-primary" 
+                        data-value="'.$row->id.'" 
+                        data-type="department-form" 
+                        data-form="mod_dep_form" 
+                        id="show_form"><i class="fa-solid fa-eye"></i></a> | <a href="#" class="text-danger"><i class="fa-solid fa-trash"></i></a>';
+            $res[] = $data;
+        }
+
+        $output = array (
+            'draw'            => isset($initPost['draw']) ? $initPost['draw'] : null,
+            'recordsTotal'    => Table::countAllTbl(),
+            'recordsFiltered' => Table::countFilterTbl(),
+            'data'            => $res
+        );
+        echo json_encode($output);
+    }
+    
     public function serverDepartmentSchedule(Request $request){
         $initPost = $request->all();
         $result   = Table::getOutputTbl('v_department_schedule', ['id',
@@ -295,6 +359,8 @@ class AdminController extends Controller
     
     public function serverOtLeaveRequest(Request $request){
         $initPost = $request->all();
+        $s = [0 => 'Pending', 1 => 'Approved', 2 => 'Rejected'];
+        $sl = [0 => 'badge-warning', 1 => 'badge-success', 2 => 'badge-danger'];
         $result   = Table::getOutputTbl('v_leave_request', ['id',
                                                             'lastname',
                                                             'firstname',
@@ -304,6 +370,7 @@ class AdminController extends Controller
                                                             'date_from',
                                                             'date_to',
                                                             'no_of_days',
+                                                            'status',
                                                             'credit_used',
                                                             'created_at'
                                                         ], ['id' => 'asc']);
@@ -320,13 +387,27 @@ class AdminController extends Controller
             $data[] = date('Y-m-d', strtotime($row->date_to));
             $data[] = $row->no_of_days;
             $data[] = $row->no_of_hours;
+            $data[] = "<span class='badge ".$sl[$row->status]."'>" . $s[$row->status] . "</span>";
             // $data[] = $row->credit_used;
             $data[] = '<a href="javascript:void(0);" 
                         class="text-primary" 
                         data-form="mod_leave_req_form" 
                         data-value="'.$row->id.'" 
                         data-type="leave-request-form" 
-                        id="show_form"><i class="fa-solid fa-eye"></i></a> | <a href="#" class="text-danger"><i class="fa-solid fa-trash"></i></a>';
+                        id="show_form"><i class="fa-solid fa-eye"></i></a> | <a href="javascript:void(0);" id="tickStatus" 
+                                                                                                            data-msg="Are you want to approve this request?" 
+                                                                                                            data-tbl="employee_leave_request" 
+                                                                                                            data-fld="status" 
+                                                                                                            data-val="1"
+                                                                                                            data-pkid="'.$row->id.'"
+                                                                                class="text-success"><i class="fa fa-check"></i></a>
+                                                                            | <a href="javascript:void(0);" id="tickStatus" 
+                                                                                                            data-msg="Are you want to reject this request?" 
+                                                                                                            data-tbl="employee_leave_request" 
+                                                                                                            data-fld="status" 
+                                                                                                            data-val="2"
+                                                                                                            data-pkid="'.$row->id.'"class="text-danger"><i class="fa fa-times"></i></a> 
+                                                                            | <a href="#" class="text-danger"><i class="fa-solid fa-trash"></i></a>';
             $res[] = $data;
         }
 
@@ -428,6 +509,15 @@ class AdminController extends Controller
         $request->validate([
             'import_file' => 'required|max:10000|mimes:csv',
         ]);
+        $dtr = DB::table('dtr')->where('payroll_date', $request->payroll_date)->first();
+        if (!empty($dtr)) {
+            return response()->json([
+                'title' => 'Error', 
+                'msg' => 'Payroll Date is Already Exist!', 
+                'icon' => 'fas fa-check', 
+                'cls' => 'bg-danger mr-1'
+            ]);
+        }
         $path1 = $request->file('import_file'); 
         try {
             $q = Excel::import(new DtrImport, $path1);
@@ -435,6 +525,64 @@ class AdminController extends Controller
                 return response()->json([
                     'title' => 'Success', 
                     'msg' => 'Employee Successfully Saved!', 
+                    'icon' => 'fas fa-check', 
+                    'cls' => 'bg-success mr-1'
+                ]);
+            } else {
+                return response()->json([
+                    'title' => 'Error', 
+                    'msg' => 'Error on Backend!', 
+                    'icon' => 'fas fa-check', 
+                    'cls' => 'bg-danger mr-1'
+                ]);
+            }
+        } catch (NoTypeDetectedException $e) {
+            echo "Sorry you are using a wrong format to upload files.";
+            print_r($e);
+        }
+        // return redirect()->route('users.index')->with('success', 'User Imported Successfully');
+    }
+
+    public function saveImportWeeklyRate(Request $request){
+        $request->validate([
+            'import_file' => 'required|max:10000|mimes:csv',
+        ]);
+        $path1 = $request->file('import_file'); 
+        try {
+            $q = Excel::import(new PieceRateImport, $path1);
+            if ($q) {
+                return response()->json([
+                    'title' => 'Success', 
+                    'msg' => 'Piece rate Successfully Saved!', 
+                    'icon' => 'fas fa-check', 
+                    'cls' => 'bg-success mr-1'
+                ]);
+            } else {
+                return response()->json([
+                    'title' => 'Error', 
+                    'msg' => 'Error on Backend!', 
+                    'icon' => 'fas fa-check', 
+                    'cls' => 'bg-danger mr-1'
+                ]);
+            }
+        } catch (NoTypeDetectedException $e) {
+            echo "Sorry you are using a wrong format to upload files.";
+            print_r($e);
+        }
+        // return redirect()->route('users.index')->with('success', 'User Imported Successfully');
+    }
+    
+    public function saveImportOtherDeduction(Request $request){
+        $request->validate([
+            'import_file' => 'required|max:10000|mimes:csv',
+        ]);
+        $path1 = $request->file('import_file'); 
+        try {
+            $q = Excel::import(new OtherDeductionImport, $path1);
+            if ($q) {
+                return response()->json([
+                    'title' => 'Success', 
+                    'msg' => 'Piece rate Successfully Saved!', 
                     'icon' => 'fas fa-check', 
                     'cls' => 'bg-success mr-1'
                 ]);
@@ -483,7 +631,7 @@ class AdminController extends Controller
             $data[] = $row->loan_amount;
             $data[] = $row->amortization;
             $data[] = $row->date_started != '0000-00-00' ? date('Y-m-d', strtotime($row->date_started)) : '0000-00-00';
-            $data[] = $row->date_end != '0000-00-00' ? date('Y-m-d', strtotime($row->date_end)) : '0000-00-00';
+            // $data[] = $row->date_end != '0000-00-00' ? date('Y-m-d', strtotime($row->date_end)) : '0000-00-00';
             // $data[] = $row->credit_used;
             $data[] = '<a href="javascript:void(0);" 
                         class="text-primary" 
@@ -504,6 +652,12 @@ class AdminController extends Controller
     }
     
     public function serverPayroll(Request $request){
+        // $col = DB::select("call pr_payroll_summary('2023-01-16', 1)");
+        // $array = get_object_vars($col[0]);
+        // $column = array_keys($array);
+        // $data = DB::select("call pr_payroll_summary('2023-01-16', 1)");
+        // return DataTables::of($data)->make(true);
+
         $initPost = $request->all();
         $result   = Table::getOutputTbl('v_payroll', ['id',
                                                         'idcode',

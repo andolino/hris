@@ -1,8 +1,8 @@
-<div class="modal fade" id="mod_upload_dtr_form">
+<div class="modal fade" id="mod_upload_piece_rate_form">
   <div class="modal-dialog modal-lg">
       <div class="modal-content">
           <div class="modal-header">
-              <h4 class="modal-title"><i class="fa-solid fa-circle-info"></i> UPLOAD</h4>
+              <h4 class="modal-title"><i class="fa-solid fa-circle-info"></i> UPLOAD PIECE RATE</h4>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
               </button>

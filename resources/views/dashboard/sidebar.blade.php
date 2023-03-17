@@ -52,7 +52,6 @@
                                 <p>Weekly</p>
                             </a>
                         </li>
-                        
 
                     </ul>
                 </li>
@@ -227,6 +226,15 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="javascript:void(0);" class="nav-link @yield('emp-active')" 
+                                data-form="mod_upload_piece_rate_form" 
+                                data-type="import-piece-rate-form" 
+                                id="show_form">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Upload Pieace Rate</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="#" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Missed Time in/out</p>
@@ -268,7 +276,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ route('payroll_weekly') }}" class="nav-link">
                         <i class="nav-icon fa-solid fa-people-pulling"></i>
                         <p>
                             Weekly
@@ -300,7 +308,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="javascript:void(0);" 
+                        data-form="mod_upload_dtr_form" 
+                        data-type="import-oth-ded-form" 
+                        id="show_form"
+                        class="nav-link">
                         <i class="nav-icon fa-solid fa-folder-minus"></i>
                         <p>
                             Upload Canteen / Union Dues
@@ -347,3 +359,4 @@
 
 </aside>
 @include('dashboard.modal.upload_dtr')
+@include('dashboard.modal.upload_piece_rate')

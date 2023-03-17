@@ -14,7 +14,7 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-sm-6">
+                    <div class="col-sm-12">
                         <div class="form-group">
                             <small>Employee:</small>
                             {{-- dtrAdjRequest --}}
@@ -31,7 +31,7 @@
                         <div class="form-group">
                             <small>Loan Type:</small>
                             {{-- dtrAdjRequest --}}
-                            <select class="custom-select form-control-border" id="employee_id" name="loan_type_id" required>
+                            <select class="custom-select form-control-border" name="loan_type_id" required>
                               <option selected hidden value="">Select Loan Type</option>
                               @foreach ($loan_types as $item)
                                   <option value="{{ $item->id }}" {{ isset($dtrAdjRequest) ? ($dtrAdjRequest->loan_type_id == $item->id ? 'selected' : '') : '' }}>{{ $item->title }}</option>
@@ -43,7 +43,7 @@
                         <div class="form-group">
                             <small>Type of Deduction:</small>
                             {{-- dtrAdjRequest --}}
-                            <select class="custom-select form-control-border" id="employee_id" name="loan_ded_type_id" required>
+                            <select class="custom-select form-control-border" id="loan_ded_type_id" name="loan_ded_type_id" required>
                               <option selected hidden value="">Select Loan Type</option>
                               @foreach ($loan_ded_type as $item)
                                   <option value="{{ $item->id }}" {{ isset($dtrAdjRequest) ? ($dtrAdjRequest->loan_ded_type_id == $item->id ? 'selected' : '') : '' }}>{{ $item->title }}</option>
@@ -62,6 +62,28 @@
                     </div>
                     <div class="col-sm-6">
                       <div class="form-group">
+                          <small>Months</small>
+                          <input type="text" class="form-control form-control-border text-uppercase"
+                              value=""
+                              id="months"
+                              name="months"
+                              placeholder="Number of Months"
+                              required>
+                      </div>
+                    </div>
+                    <div class="col-sm-6">
+                      <div class="form-group">
+                          <small>Terms</small>
+                          <input type="text" class="form-control form-control-border text-uppercase"
+                              value=""
+                              id="terms"
+                              name="terms"
+                              placeholder="Number of Terms"
+                              required>
+                      </div>
+                    </div>
+                    <div class="col-sm-6">
+                      <div class="form-group">
                           <small>Amortization</small>
                           <input type="text" class="form-control form-control-border text-uppercase isNum" name="amortization"
                               value=""
@@ -70,26 +92,52 @@
                               required>
                       </div>
                     </div>
-                    <div class="col-sm-6">
-                      <div class="form-group">
-                          <small>Date Applied: <span class="text-danger">*</span></small>
-                          <div class="input-group">
-                            <div class="input-group-prepend">
-                              <span class="input-group-text"><i class="far fa-clock"></i></span>
-                            </div>
-                            <input type="text" class="form-control float-right" id="date_loan_frm_to">
-                            <input type="hidden" class="form-control float-right" name="date_started">
-                            <input type="hidden" class="form-control float-right" name="date_end">
-                          </div>
-                      </div>
-                  </div>
-                   
-                    {{-- <div class="col-sm-4">
+                    {{-- <div class="col-sm-6">
                         <div class="form-group">
-                            <small>Credit Used</small>
-                            <input type="text" class="form-control form-control-border" value="" placeholder=""/>
+                            <small>Date Applied: <span class="text-danger">*</span></small>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="far fa-clock"></i></span>
+                                </div>
+                                <input type="text" class="form-control float-right" id="date_loan_frm_to">
+                                <input type="hidden" class="form-control float-right" name="date_started">
+                                <input type="hidden" class="form-control float-right" name="date_end">
+                            </div>
                         </div>
                     </div> --}}
+                    
+                    <input type="hidden" class="form-control float-right" id="payroll_schedule_id" value="">
+
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                          <small>Date Started</small>
+                          <div class="input-group date" id="transaction_date" data-target-input="nearest">
+                              <input type="text" class="form-control datetimepicker-input" name="date_started" data-target="#transaction_date"/>
+                              <div class="input-group-append" data-target="#transaction_date" data-toggle="datetimepicker">
+                                  <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                              </div>
+                          </div>
+                        </div>
+                    </div>
+                   
+                    {{-- <div class="col-sm-12">
+                        <button class="btn btn-block btn-default btn-flat" type="button" id="generateLoansSched">Generate <i class="fa-solid fa-arrows-rotate"></i></button>
+                    </div> --}}
+
+                    {{-- <div class="col-sm-12">
+                        <table class="table table-striped table-valign-middle d-none" id="tbl-loans-rb">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                        </tbody>
+                      </table>
+                    </div> --}}
+
                 </div>
 
             </div>
