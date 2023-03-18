@@ -1,7 +1,7 @@
 <div class="card-header bg-secondary">
   <span>DETAILS</span>
 </div>
-<table class="table table-bordered table-hover">
+<table class="table table-bordered table-hover table-fixed" id="infoTbl">
   <thead>
       <tr>
           <th>Description</th>
@@ -182,3 +182,19 @@
       <p>{{ number_format($gross - $ded, 2); }}</p>
   </div>
 </div>
+
+<script>
+    $( document ).ready(function() {
+        $("#infoTbl tbody tr").click(function() {
+            var selected = $(this).hasClass("highlight");
+            // $("#infoTbl tr").removeClass("highlight");
+            if (!selected) {
+                $(this).addClass("highlight");
+                var credit = $(this).find('td').html();
+                console.log(credit)
+            } else {
+                $(this).removeClass("highlight");
+            }
+        });
+    });
+</script>

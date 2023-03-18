@@ -163,6 +163,8 @@ $(document).ready(function () {
       tblDtrAdjustmentRequest.ajax.reload(); 
     } else if($.fn.DataTable.isDataTable('#tbl-department')){
       tblDepartment.ajax.reload(); 
+    } else if($.fn.DataTable.isDataTable('#tbl-loans')){
+      tblLoans.ajax.reload(); 
     }
   }
 
