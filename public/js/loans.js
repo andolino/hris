@@ -16,6 +16,7 @@ $(document).ready(function () {
            ht+='<option value="'+v.id+'">'+v.title+'</option>';
         });
         $('#loan_ded_type_id').html(ht);
+        $('.current-active-loans').html(res.page);
       }
     });
   });

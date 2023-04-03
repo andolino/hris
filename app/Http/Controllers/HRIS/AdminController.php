@@ -11,6 +11,7 @@ use App\Models\Table;
 use App\Imports\DtrImport;
 use App\Imports\PieceRateImport;
 use App\Imports\OtherDeductionImport;
+use App\Imports\OutrightDeductionImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Exceptions\NoTypeDetectedException;
 use DateTime;
@@ -118,6 +119,13 @@ class AdminController extends Controller
     
     public function weeklyPayroll(){
         $title = 'Weekly Payroll';
+        // $col = DB::select("call pr_payroll_summary('2023-01-21', 2)");
+        // $array = get_object_vars($col[0]);
+        // $column = array_keys($array);
+        // $column[] = 'Deduction';
+        // $column[] = 'Gross Pay';
+        // $column[] = 'Net Pay';
+        // $column[] = 'Action';
         return view('dashboard.page.weekly_payroll', compact('title'));
     }
 
@@ -576,13 +584,22 @@ class AdminController extends Controller
         $request->validate([
             'import_file' => 'required|max:10000|mimes:csv',
         ]);
+        $otherDed = DB::table('other_deduction')->where('payroll_date', date('Y-m-d', strtotime($request->payroll_date)))->first();
+        if (!empty($otherDed)) {
+            return response()->json([
+                'title' => 'Error', 
+                'msg' => 'Payroll Date is Already Exist!', 
+                'icon' => 'fas fa-check', 
+                'cls' => 'bg-danger mr-1'
+            ]);
+        }
         $path1 = $request->file('import_file'); 
         try {
             $q = Excel::import(new OtherDeductionImport, $path1);
             if ($q) {
                 return response()->json([
                     'title' => 'Success', 
-                    'msg' => 'Piece rate Successfully Saved!', 
+                    'msg' => 'Outside Deduction Successfully Saved!', 
                     'icon' => 'fas fa-check', 
                     'cls' => 'bg-success mr-1'
                 ]);
@@ -598,7 +615,45 @@ class AdminController extends Controller
             echo "Sorry you are using a wrong format to upload files.";
             print_r($e);
         }
-        // return redirect()->route('users.index')->with('success', 'User Imported Successfully');
+        return redirect()->route('users.index')->with('success', 'User Imported Successfully');
+    }
+    
+    public function saveImportOutrightDeduction(Request $request){
+        $request->validate([
+            'import_file' => 'required|max:10000|mimes:csv',
+        ]);
+        $otherDed = DB::table('outright_deduction')->where('payroll_date', date('Y-m-d', strtotime($request->payroll_date)))->first();
+        if (!empty($otherDed)) {
+            return response()->json([
+                'title' => 'Error', 
+                'msg' => 'Payroll Date is Already Exist!', 
+                'icon' => 'fas fa-check', 
+                'cls' => 'bg-danger mr-1'
+            ]);
+        }
+        $path1 = $request->file('import_file'); 
+        try {
+            $q = Excel::import(new OutrightDeductionImport, $path1);
+            if ($q) {
+                return response()->json([
+                    'title' => 'Success', 
+                    'msg' => 'Outside Deduction Successfully Saved!', 
+                    'icon' => 'fas fa-check', 
+                    'cls' => 'bg-success mr-1'
+                ]);
+            } else {
+                return response()->json([
+                    'title' => 'Error', 
+                    'msg' => 'Error on Backend!', 
+                    'icon' => 'fas fa-check', 
+                    'cls' => 'bg-danger mr-1'
+                ]);
+            }
+        } catch (NoTypeDetectedException $e) {
+            echo "Sorry you are using a wrong format to upload files.";
+            print_r($e);
+        }
+        return redirect()->route('users.index')->with('success', 'User Imported Successfully');
     }
 
     public function serverLoans(Request $request){
@@ -634,11 +689,12 @@ class AdminController extends Controller
             // $data[] = $row->date_end != '0000-00-00' ? date('Y-m-d', strtotime($row->date_end)) : '0000-00-00';
             // $data[] = $row->credit_used;
             $data[] = '<a href="javascript:void(0);" 
-                        class="text-primary" 
-                        data-form="mod_leave_req_form" 
-                        data-value="'.$row->id.'" 
-                        data-type="leave-request-form" 
-                        id="show_form"><i class="fa-solid fa-eye"></i></a> | <a href="#" class="text-danger"><i class="fa-solid fa-trash"></i></a>';
+                            class="text-primary" 
+                            data-form="mod_leave_req_form" 
+                            data-value="'.$row->id.'" 
+                            data-type="leave-request-form" 
+                            id="show_form"><i class="fa-solid fa-eye"></i></a> | 
+                            <a href="#" class="text-danger"><i class="fa-solid fa-trash"></i></a>';
             $res[] = $data;
         }
 
@@ -652,67 +708,116 @@ class AdminController extends Controller
     }
     
     public function serverPayroll(Request $request){
-        // $col = DB::select("call pr_payroll_summary('2023-01-16', 1)");
-        // $array = get_object_vars($col[0]);
-        // $column = array_keys($array);
-        // $data = DB::select("call pr_payroll_summary('2023-01-16', 1)");
-        // return DataTables::of($data)->make(true);
-
-        $initPost = $request->all();
-        $result   = Table::getOutputTbl('v_payroll', ['id',
-                                                        'idcode',
-                                                        'lastname',
-                                                        'firstname',
-                                                        'middlename',
-                                                        'base_rate',
-                                                        'days_worked',
-                                                        'ot',
-                                                        'sick_leave',
-                                                        'vacation_leave',
-                                                        'allowance',
-                                                        'regular_holiday',
-                                                        'special_holiday',
-                                                        'subsidy',
-                                                        'late',
-                                                        'undertime',
-                                                        'tot_deductions',
-                                                    ], ['id' => 'asc']);
-        $res      = array();
-        $no       = isset($initPost['start']) ? $initPost['start'] : 0;
-
-        foreach ($result as $row) {
-            $data = array();
-            $no++;
-            $data[] = $row->lastname . ', ' . $row->firstname . ' ' . $row->middlename;
-            $data[] = number_format($row->basic_rate, 2);
-            $data[] = $row->days_worked;
-            $data[] = $row->ot;
-            $data[] = $row->sick_leave;
-            $data[] = $row->vacation_leave;
-            $data[] = $row->allowance;
-            $data[] = $row->regular_holiday;
-            $data[] = $row->special_holiday;
-            $data[] = $row->subsidy;
-            $data[] = $row->late;
-            $data[] = $row->undertime;
-            $data[] = $row->tot_deductions;
-            // $data[] = $row->credit_used;
-            $data[] = '<a href="javascript:void(0);" 
+        $payroll_type = $request->payroll_type;
+        $payroll_date = $request->payroll_date;
+        $col    = DB::select("call pr_payroll_summary('".$payroll_date."', $payroll_type)");
+        $array  = get_object_vars($col[0]);
+        $column = array_keys($array);
+        $data   = DB::select("call pr_payroll_summary('".$payroll_date."', $payroll_type)");
+        return DataTables::of($data)
+        ->addColumn('Deduction', function($data) use ($column){
+            $deduction = 0;
+            for ($i=4; $i < count($column); $i++) { 
+                if (floatval(str_replace(',', '', $data->{$column[$i]})) < 0 && $column[$i] != 'Days Worked') {
+                    $deduction+=floatval(str_replace(',', '', $data->{$column[$i]}));
+                }
+            }
+            return abs($deduction);
+        })->addColumn('Gross Pay', function($data) use ($column){
+            $grossPay = 0;
+            for ($i=4; $i < count($column); $i++) { 
+                if (floatval(str_replace(',', '', $data->{$column[$i]})) > 0 && $column[$i] != 'Days Worked') {
+                    $grossPay+=floatval(str_replace(',', '', $data->{$column[$i]}));
+                }
+            }
+            return $grossPay;
+        })->addColumn('Net Pay', function($data) use ($column){
+            $deduction = 0;
+            $grossPay = 0;
+            for ($i=4; $i < count($column); $i++) { 
+                if (floatval(str_replace(',', '', $data->{$column[$i]})) < 0 && $column[$i] != 'Days Worked') {
+                    $deduction+=floatval(str_replace(',', '', $data->{$column[$i]}));
+                } else if(floatval(str_replace(',', '', $data->{$column[$i]})) > 0 && $column[$i] != 'Days Worked') {
+                    $grossPay+=floatval(str_replace(',', '', $data->{$column[$i]}));
+                }
+            }
+            return $grossPay - abs($deduction);
+        })->addColumn('Action', function($data) use ($column){
+            $deduction = 0;
+            $grossPay = 0;
+            for ($i=4; $i < count($column); $i++) { 
+                if (floatval(str_replace(',', '', $data->{$column[$i]})) < 0 && $column[$i] != 'Days Worked') {
+                    $deduction+=floatval(str_replace(',', '', $data->{$column[$i]}));
+                } else if(floatval(str_replace(',', '', $data->{$column[$i]})) > 0 && $column[$i] != 'Days Worked') {
+                    $grossPay+=floatval(str_replace(',', '', $data->{$column[$i]}));
+                }
+            }
+            $html = '<a href="javascript:void(0);" 
                         class="text-primary" 
                         data-form="mod_payroll_form" 
-                        data-value="'.$row->id.'" 
+                        data-value="'.$data->employee_id.'" 
                         data-type="employee-payroll-details" 
                         id="show_form"><i class="fa-solid fa-eye"></i></a> | <a href="#" class="text-danger"><i class="fa-solid fa-trash"></i></a>';
-            $res[] = $data;
-        }
+            return $html;
+            // return $grossPay - abs($deduction);
+        })->rawColumns(['Action'])
+        ->make(true);
 
-        $output = array (
-            'draw'            => isset($initPost['draw']) ? $initPost['draw'] : null,
-            'recordsTotal'    => Table::countAllTbl(),
-            'recordsFiltered' => Table::countFilterTbl(),
-            'data'            => $res
-        );
-        echo json_encode($output);
+        // $initPost = $request->all();
+        // $result   = Table::getOutputTbl('v_payroll', ['id',
+        //                                                 'idcode',
+        //                                                 'lastname',
+        //                                                 'firstname',
+        //                                                 'middlename',
+        //                                                 'base_rate',
+        //                                                 'days_worked',
+        //                                                 'ot',
+        //                                                 'sick_leave',
+        //                                                 'vacation_leave',
+        //                                                 'allowance',
+        //                                                 'regular_holiday',
+        //                                                 'special_holiday',
+        //                                                 'subsidy',
+        //                                                 'late',
+        //                                                 'undertime',
+        //                                                 'tot_deductions',
+        //                                             ], ['id' => 'asc']);
+        // $res      = array();
+        // $no       = isset($initPost['start']) ? $initPost['start'] : 0;
+
+        // foreach ($result as $row) {
+        //     $data = array();
+        //     $no++;
+        //     $data[] = $row->lastname . ', ' . $row->firstname . ' ' . $row->middlename;
+        //     $data[] = number_format($row->basic_rate, 2);
+        //     $data[] = $row->days_worked;
+        //     $data[] = $row->ot;
+        //     $data[] = $row->sick_leave;
+        //     $data[] = $row->vacation_leave;
+        //     $data[] = $row->allowance;
+        //     $data[] = $row->regular_holiday;
+        //     $data[] = $row->special_holiday;
+        //     $data[] = $row->subsidy;
+        //     $data[] = $row->late;
+        //     $data[] = $row->undertime;
+        //     $data[] = $row->tot_deductions;
+        //     // $data[] = $row->credit_used;
+        //     $data[] = '<a href="javascript:void(0);" 
+        //                 class="text-primary" 
+        //                 data-form="mod_payroll_form" 
+        //                 data-value="'.$row->id.'" 
+        //                 data-type="employee-payroll-details" 
+        //                 id="show_form"><i class="fa-solid fa-eye"></i></a> | <a href="#" class="text-danger"><i class="fa-solid fa-trash"></i></a>';
+        //     $res[] = $data;
+        // }
+
+        // $output = array (
+        //     'draw'            => isset($initPost['draw']) ? $initPost['draw'] : null,
+        //     'recordsTotal'    => Table::countAllTbl(),
+        //     'recordsFiltered' => Table::countFilterTbl(),
+        //     'data'            => $res
+        // );
+        // echo json_encode($output);
     }
 
 }

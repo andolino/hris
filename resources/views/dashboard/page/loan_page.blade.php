@@ -25,7 +25,8 @@
             <div class="card-header bg-dark">
                 <div class="btn-group" role="group" aria-label="Basic example">
                     {{-- data-toggle="modal" data-target="#emp_form" --}}
-                    <button type="button" class="btn btn-secondary" title="Add Loans" data-form="mod_loans_form" data-type="loans-form" id="show_form"><i class="fa-solid fa-plus"></i></button>
+                    <button type="button" class="btn btn-default rounded-0" title="Add Loans" data-form="mod_loans_form" data-type="loans-form" id="show_form"><i class="fa-solid fa-plus"></i> Add Loans</button>
+                    <button type="button" class="btn btn-default rounded-0" title="Add Loans" data-form="mod_loans_form" data-type="renewal-loans-form" id="show_form"><i class="fa-solid fa-plus"></i> Renewal</button>
                     {{-- <button type="button" class="btn btn-secondary" title="Salary" data-form="mod_salary_form" data-type="salary-form" id="show_form"><i class="fa-solid fa-coins"></i></button>
                     <button type="button" class="btn btn-secondary" title="Leave"><i class="fa-solid fa-business-time"></i></i></button>
                     <button type="button" class="btn btn-secondary" title="Loan"><i class="fa-solid fa-comment-dollar"></i></button> --}}

@@ -66,14 +66,19 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/save-import-dtr', [AdminController::class, 'saveUploadDTR']);
     Route::post('/save-import-weekly-rate', [AdminController::class, 'saveImportWeeklyRate']);
     Route::post('/save-import-other-deduction', [AdminController::class, 'saveImportOtherDeduction']);
+    Route::post('/save-import-outright-deduction', [AdminController::class, 'saveImportOutrightDeduction']);
     Route::get('/get-week-of-month', [AdminController::class, 'getWeekOfMonth']);
     Route::post('/get-individual-payslip', [HomeController::class, 'getIndividualPayslip']);
     Route::post('/tick-status-ot-leave-request', [HomeController::class, 'tickStatusOtLeaveRequest']);
     Route::get('/compute', [HomeController::class, 'computePayroll']);
     Route::post('/save-post-monthly', [HomeController::class, 'savePostMonthly']);
-    Route::get('/get-payroll-column', [HomeController::class, 'getPayrollColumn']);
+    Route::post('/get-payroll-column', [HomeController::class, 'getPayrollColumn']);
     Route::get('/get-employee-data', [HomeController::class, 'getEmployeeData']);
     Route::get('/set-loans-payment-sched', [HomeController::class, 'setLoansPaymentSched']);
+    Route::post('/remove-deduction', [HomeController::class, 'removeDeduction']);
+    Route::post('/compute-renewal', [HomeController::class, 'computeRenewal']);
+    Route::post('/open-payroll-deduction', [HomeController::class, 'openPayrollDeduction']);
+    Route::post('/save-compute-outright-deduction', [HomeController::class, 'saveComputeOutrightDeduction']);
 
     /**
      * Datatable

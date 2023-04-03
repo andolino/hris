@@ -2,14 +2,14 @@
 
 namespace App\Imports;
 
-use App\Models\OtherDeduction;
+use App\Models\OutrightDeduction;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Illuminate\Support\Carbon;
 
-class OtherDeductionImport implements ToModel, WithStartRow
+class OutrightDeductionImport implements ToModel, WithStartRow
 {
     /**
     * @param array $row
@@ -20,15 +20,16 @@ class OtherDeductionImport implements ToModel, WithStartRow
     {
         $request = \Request::all();
         $weeklyEmployee = DB::table('employees')->where('bio_id', $row[0])->first();
-        return new OtherDeduction([
+        return new OutrightDeduction([
             'employee_id' => !empty($weeklyEmployee) ? $weeklyEmployee->id : null,
             'payroll_date' => date('Y-m-d', strtotime($request['payroll_date'])),
-            'canteen' => $row[4],
-            'union_medical' => $row[5],
-            'union_assistance' => $row[6],
-            'pa_adj' => $row[7],
-            'other_deductions' => $row[8],
-            'description' => $row[9],
+            'sss' => $row[4],
+            'philhealth' => $row[5],
+            'pagibig' => $row[6],
+            'tax' => $row[7],
+            'cash_adv' => $row[8],
+            'accessories' => $row[9],
+            'cash_adv_u' => $row[10],
             'created_at' => Carbon::now()
         ]);
     }

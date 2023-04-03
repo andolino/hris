@@ -21,7 +21,7 @@
       @endphp
       @foreach ($details as $item)
           @if ($item->description != '')
-              <tr>
+              <tr data-refno="{{ $item->ref_no }}">
                   <td>{{ $item->description }}</td>
                   <td class="text-right">{{ $item->no_of_day }}</td>
                   <td class="text-right">{{ $item->hrs }}</td>
@@ -37,7 +37,7 @@
           @endif
       @endforeach
 
-      @if (!empty($details) && $details[0]->payroll_schedule_id ==  1)
+      {{-- @if (!empty($details) && $details[0]->payroll_schedule_id ==  1)
         <tr>
             <td>SSS</td>
             <td></td>
@@ -117,10 +117,10 @@
             $ded += floatval(str_replace(',', '', $deductions['incomeTax']));
             // $net = $gross - $ded;
         @endphp
-      @endif
+      @endif --}}
       
       
-      @if (!empty($details) && $details[0]->payroll_schedule_id ==  2 && $details[0]->week_count == 4)
+      {{-- @if (!empty($details) && $details[0]->payroll_schedule_id ==  2 && $details[0]->week_count == 4)
         <tr>
             <td>SSS</td>
             <td></td>
@@ -164,7 +164,7 @@
             $ded += floatval(str_replace(',', '', $deductions['incomeTax']));
             // $net = $gross - $ded;
         @endphp
-      @endif
+      @endif --}}
 
   </tbody>
 </table>
@@ -185,16 +185,6 @@
 
 <script>
     $( document ).ready(function() {
-        $("#infoTbl tbody tr").click(function() {
-            var selected = $(this).hasClass("highlight");
-            // $("#infoTbl tr").removeClass("highlight");
-            if (!selected) {
-                $(this).addClass("highlight");
-                var credit = $(this).find('td').html();
-                console.log(credit)
-            } else {
-                $(this).removeClass("highlight");
-            }
-        });
+        
     });
 </script>

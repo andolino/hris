@@ -310,12 +310,24 @@
                 <li class="nav-item">
                     <a href="javascript:void(0);" 
                         data-form="mod_upload_dtr_form" 
+                        data-type="import-outright-ded-form" 
+                        id="show_form"
+                        class="nav-link">
+                        <i class="nav-icon fa-solid fa-folder-minus"></i>
+                        <p>
+                            Upload Outright Ded
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="javascript:void(0);" 
+                        data-form="mod_upload_dtr_form" 
                         data-type="import-oth-ded-form" 
                         id="show_form"
                         class="nav-link">
                         <i class="nav-icon fa-solid fa-folder-minus"></i>
                         <p>
-                            Upload Canteen / Union Dues
+                            Upload Outside Ded
                         </p>
                     </a>
                 </li>

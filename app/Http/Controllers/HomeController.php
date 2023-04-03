@@ -166,6 +166,20 @@ class HomeController extends Controller
                     'payroll_type' => $request->type
                 ]);
                 break;
+            case 'import-outright-ded-form':
+                $shifting = DB::table('shifting')->where('id', $val)->first();
+                return view('dashboard.modal.forms.upload-outright-deduction', [
+                    'shifting' => $shifting,
+                    'payroll_type' => $request->type
+                ]);
+                break;
+            case 'compute-outright-ded-form':
+                $shifting = DB::table('shifting')->where('id', $val)->first();
+                return view('dashboard.modal.forms.compute-outright-deduction', [
+                    'shifting' => $shifting,
+                    'payroll_type' => $request->type
+                ]);
+                break;
             case 'leave-request-form':
                 $dayType = DB::table('day_type')->get();
                 $empLeaveRequest = DB::table('employee_leave_request')->where('id', $val)->first();
@@ -202,6 +216,18 @@ class HomeController extends Controller
                 $loan_types = DB::table('loan_types')->get();
                 $loan_ded_type = DB::table('loan_ded_type')->get();
                 return view('dashboard.modal.forms.add_loans', [
+                    'loans' => $loans,
+                    'employees' => $employees,
+                    'loan_types' => $loan_types,
+                    'loan_ded_type' => $loan_ded_type
+                    // 'dtrAdjRequest' => $dtrAdjRequest
+                ]);
+                break;
+            case 'renewal-loans-form':
+                $loans = DB::table('loans')->where('id', $val)->first();
+                $loan_types = DB::table('loan_types')->get();
+                $loan_ded_type = DB::table('loan_ded_type')->get();
+                return view('dashboard.modal.forms.add_renew_loans', [
                     'loans' => $loans,
                     'employees' => $employees,
                     'loan_types' => $loan_types,
@@ -256,18 +282,37 @@ class HomeController extends Controller
 
     }
 
-    public function getPayrollColumn(){
-        $col = DB::select("call pr_payroll_summary('2023-01-16', 1)");
-        $array = get_object_vars($col[0]);
-        $column = array_keys($array);
-        $data = [];
-        for ($i=0; $i < count($column); $i++) { 
-            array_push($data, (object) array(
-                "data" => $column[$i],
-                "width" => "10%"
-            ));
+    public function getPayrollColumn(Request $request){
+        $payroll_date = $request->payroll_date;
+        $type = $request->type;
+        $col = DB::select("call pr_payroll_summary('".$payroll_date."', ".$type.")");
+        if (!empty($col)) {
+            $array = get_object_vars($col[0]);
+            $column = array_keys($array);
+            array_push($column, 'Deduction');
+            array_push($column, 'Gross Pay');
+            array_push($column, 'Net Pay');
+            array_push($column, 'Action');
+            $data = [];
+            for ($i=0; $i < count($column); $i++) { 
+                array_push($data, (object) array(
+                    "data" => $column[$i],
+                    "width" => "30%"
+                ));
+            }
+            if ($type == 2) {
+                $page = view('dashboard.modal.details.weekly_payroll_column', compact('column'))->render();
+                return response()->json([
+                    'page' => $page,
+                    'col' => $data
+                ]);
+            }
+            $page = view('dashboard.modal.details.monthly_payroll_column', compact('column'))->render();
+            return response()->json([
+                'page' => $page,
+                'col' => $data
+            ]);
         }
-        return response()->json($data);
     }
 
     function getSaturdaysOfMonth($month, $year) {
@@ -279,6 +324,49 @@ class HomeController extends Controller
             $date->modify('+1 week');
         }
         return $saturdays;
+    }
+    
+    function openPayrollDeduction(Request $request) {
+        try {
+            DB::table($request->tbl)->where($request->field, $request->val)->delete();
+            return response()->json([
+                'title' => 'Success', 
+                'msg' => 'Payroll Date '. date('F j, Y', strtotime($request->val)) .' is now Open..', 
+                'icon' => 'fas fa-check', 
+                'cls' => 'bg-success mr-1'
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'title' => 'Error', 
+                'msg' => 'Error on Backend!', 
+                'icon' => 'fas fa-check', 
+                'cls' => 'bg-danger mr-1'
+            ]);
+        }
+    }
+    
+    function computeRenewal(Request $request) {
+        $loan_id = $request->loan_id;
+        $data = [];
+        if ($loan_id) {
+            for ($i=0; $i < count($loan_id); $i++) { 
+                $loans = DB::table('loans')
+                        ->selectRaw("(sum(coalesce(loan_details.balance, 0)) - sum(coalesce(loan_details.payment_amount, 0))) as balance")
+                        ->leftJoin("loan_details", "loan_details.loan_id", "=", "loans.id")
+                        ->where("loans.id", $loan_id[$i])
+                        ->groupBy("loans.id")
+                        ->first();
+                array_push($data, $loans->balance);
+            }
+        }
+        if (count($data) > 0) {
+            return response()->json([
+                'balance' => array_sum($data),
+                'loan_id' => $loan_id
+            ]);
+        } else {
+            return response()->json(['balance' => 0]);
+        }
     }
 
     public function getIndividualPayslip(Request $request){
@@ -742,6 +830,13 @@ class HomeController extends Controller
     }
     
     public function getEmployeeData(Request $request){
+        $loans = DB::table('loans')
+                    ->selectRaw("loans.id, loan_types.title, (sum(coalesce(loan_details.balance, 0)) - sum(coalesce(loan_details.payment_amount, 0))) as balance")
+                    ->leftJoin("loan_details", "loan_details.loan_id", "=", "loans.id")
+                    ->leftJoin("loan_types", "loan_types.id", "=", "loans.loan_type_id")
+                    ->where("loans.employee_id", $request->employee_id)
+                    ->groupBy("loans.id")
+                    ->get();
         $monthly_employee = DB::table('employees')
                                 ->where('id', $request->employee_id)
                                 ->first();
@@ -753,10 +848,109 @@ class HomeController extends Controller
                                 ->whereIn('id', [1, 2, 3])
                                 ->get();
         }
+        $page = view('dashboard.modal.details.current_active_loans', compact('loans'))->render();
         return response()->json([
-            'data' => $monthly_employee,
-            'dedOptions' => $dedOptions
+            'data'       => $monthly_employee,
+            'dedOptions' => $dedOptions,
+            'page'       => $page
         ]);
+    }
+    
+    public function saveComputeOutrightDeduction(Request $request){
+        $payroll_date = $request->payroll_date;
+        $type = $request->type;
+        $outright = DB::table('outright_deduction')->where('payroll_date', date('Y-m-d', strtotime($payroll_date)))->first();
+        if (!empty($outright)) {
+            return response()->json([
+                'title' => 'Error', 
+                'msg' => date('F j, Y', strtotime($payroll_date)) . ' is already been computed!', 
+                'icon' => 'fas fa-check', 
+                'cls' => 'bg-danger mr-1',
+            ]);
+        }
+
+        $summary = DB::select('CALL pr_payroll_summary(?, ?)', array(date('Y-m-d', strtotime($payroll_date)), $type));
+        $data = array();
+        foreach ($summary as $row) {
+            $deduction = ComputeDeduction::showComputation(floatval(str_replace(',', '', $row->{'Basic Rate'})) + floatval(str_replace(',', '', $row->{'Allowance'})));
+            array_push($data, array(
+                'employee_id' => $row->employee_id,
+                'payroll_date' => date('Y-m-d', strtotime($payroll_date)),
+                'sss' => $deduction['sss'],
+                'philhealth' => $deduction['philhealth'],
+                'pagibig' => $deduction['pagibig'],
+                'tax' => $deduction['incomeTax'],
+                'created_at' => Carbon::now()
+            ));
+        }
+        try {
+            DB::table('outright_deduction')->insert($data);
+            return response()->json([
+                'title' => 'Success', 
+                'msg' => date('F j, Y', strtotime($payroll_date)) . ' is already computed!', 
+                'icon' => 'fas fa-check', 
+                'cls' => 'bg-success mr-1',
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'title' => 'Error', 
+                'msg' => 'Error on Backend! ' . $th, 
+                'icon' => 'fas fa-check', 
+                'cls' => 'bg-danger mr-1',
+            ]);
+        }
+    }
+    
+    public function removeDeduction(Request $request){
+        $payroll_date = $request->payroll_date;
+        $type = $request->type;
+        try {
+            DB::table('loans')
+                ->where('id', $request->loan_id)
+                ->update([
+                    'is_pause_ded' => $request->is_pause_ded
+                ]);
+
+            $col = DB::select("call pr_payroll_summary('".$payroll_date."', ".$type.")");
+            if (!empty($col)) {
+                $array = get_object_vars($col[0]);
+                $column = array_keys($array);
+                array_push($column, 'Deduction');
+                array_push($column, 'Gross Pay');
+                array_push($column, 'Net Pay');
+                array_push($column, 'Action');
+                $data = [];
+                for ($i=0; $i < count($column); $i++) { 
+                    array_push($data, (object) array(
+                        "data" => $column[$i],
+                        "width" => "30%"
+                    ));
+                }
+                $page = view('dashboard.modal.details.weekly_payroll_column', compact('column'))->render();
+                // return response()->json([
+                //     'page' => $page,
+                //     'col' => $data
+                // ]);
+            }
+
+            return response()->json([
+                'title' => 'Success', 
+                'msg' => 'Saved!', 
+                'icon' => 'fas fa-check', 
+                'cls' => 'bg-success mr-1',
+                'page' => $page,
+                'col' => $data
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'title' => 'Error', 
+                'msg' => 'Error on Backend! ' . $th, 
+                'icon' => 'fas fa-check', 
+                'cls' => 'bg-danger mr-1',
+                'page' => $page,
+                'col' => $data
+            ]);
+        }
     }
 
 }

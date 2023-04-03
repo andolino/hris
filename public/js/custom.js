@@ -310,6 +310,43 @@ $(document).ready(function () {
       }
     });
   });
+  
+  $(document).on('click', '#open-payroll-date', function () {
+    var tbl        = $(this).attr('data-tbl');
+    var confirmMsg = $(this).attr('data-msg');
+    var field      = $(this).attr('data-field');
+    var val        = moment($('.payroll_date').val()).format('YYYY-MM-DD');
+    Swal.fire({
+      title: confirmMsg,
+      showDenyButton: true,
+      confirmButtonText: 'Yes',
+      denyButtonText: `Wait`,
+      icon: 'question'
+    }).then((result) => {
+      /* Read more about isConfirmed, isDenied below */
+      if (result.isConfirmed) {
+        $.ajax({
+          type: "POST",
+          url: "open-payroll-deduction",
+          data: { 
+            'msg': confirmMsg,
+            'tbl': tbl,
+            'field': field,
+            'val': val,
+            _token: $('meta[name="csrf-token"]').attr('content')
+          },
+          dataType: "json",
+          success: function (res) {
+            refreshDataTable();
+            tipToast(res.title, res.msg, res.icon, res.cls);
+          }
+        });
+        // console.log(options, ' options');
+      } else if (result.isDenied) {
+        // $('#mod_emp_form').modal('hide');
+      }
+    })
+  });
 
 
 });
